@@ -1,0 +1,11 @@
+{
+    "java.project.sourcePaths": [
+        "src"
+    ],
+    "java.import.generatesMetadataFilesAtProjectRoot":true,
+    "java.project.referencedLibraries": [
+        "Jedis.jar"
+    ],
+    "accessibility.voice.keywordActivation":"inlineChat",
+
+}

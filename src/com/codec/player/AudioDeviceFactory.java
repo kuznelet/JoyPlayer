@@ -20,6 +20,8 @@
 
 package com.codec.player;
 
+import java.lang.reflect.Constructor;
+
 import com.mp3.decoder.JavaLayerException;
 
 /**
@@ -74,9 +76,13 @@ public abstract class AudioDeviceFactory {
 			cls = loader.loadClass(name);
 		}
 
-		Object o = cls.newInstance();
-		dev = (AudioDevice) o;
-
+		try
+		{
+			Constructor<?>[] constructors = cls.getConstructors();
+			Object o = constructors[0].newInstance();
+			dev = (AudioDevice) o;
+		}
+		catch(Exception e){}
 		return dev;
 	}
 }

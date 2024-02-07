@@ -295,7 +295,9 @@ final class SynthesisFilter {
 
 		// this is pretty insane coding
 		float tmp1;
-		new_v19/* 36-17 */= -(new_v4 = (new_v12 = p7) + p5) - p6;
+		new_v12 = p7;
+		new_v4 = (p7 + p5);
+		new_v19/* 36-17 */= -p7 - p5 - p6;
 		new_v27/* 44-17 */= -p6 - p7 - p4;
 		new_v6 = (new_v10 = (new_v14 = p15) + p11) + p13;
 		new_v17/* 34-17 */= -(new_v2 = p15 + p13 + p9) - p14;
@@ -518,7 +520,9 @@ final class SynthesisFilter {
 	 */
 
 	private float[] _tmpOut = new float[32];
-
+	public float[] GetTmpOut() {
+		return this._tmpOut;
+	}
 	private void compute_pcm_samples0(Obuffer buffer) {
 		final float[] vp = actual_v;
 		// int inc = v_inc;
@@ -1032,8 +1036,8 @@ final class SynthesisFilter {
 
 		// MDM: this may not be necessary. The Layer III decoder always
 		// outputs 32 subband samples, but I haven't checked layer I & II.
-		for (int p = 0; p < 32; p++)
-			samples[p] = 0.0f;
+		//for (int p = 0; p < 32; p++)
+		//	samples[p] = 0.0f;
 	}
 
 	private static final double MY_PI = 3.14159265358979323846;

@@ -869,8 +869,6 @@ public final class FLACDecoder extends Decoder {
 
 		@Override
 		public void run() {
-			// TODO Auto-generated method stub
-
 		}
 	}
 

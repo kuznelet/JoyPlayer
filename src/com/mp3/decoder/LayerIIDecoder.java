@@ -32,7 +32,7 @@ package com.mp3.decoder;
 /**
  * Implements decoding of MPEG Audio Layer II frames. 
  */
-class LayerIIDecoder extends LayerIDecoder implements FrameDecoder
+class LayerIIDecoder extends LayerIDecoder 
 {
 
 	public LayerIIDecoder()

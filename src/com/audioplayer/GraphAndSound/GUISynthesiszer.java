@@ -41,12 +41,13 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.DataLine;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
-import javax.swing.Box;
+import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -60,6 +61,10 @@ import com.mp3.decoder.JavaLayerException;
 public final class GUISynthesiszer extends JFrame implements MouseListener,
 		KeyListener {
 	/**
+	 * Create pane bvnl for signal UI.
+	 */
+	public JPanel signalUI = new SignalPanel();
+	/**
 	 * Create ImageIcon fields for UI layout.
 	 */
 	private ImageIcon startIcon;
@@ -67,8 +72,8 @@ public final class GUISynthesiszer extends JFrame implements MouseListener,
 	private ImageIcon preIcon;
 	private ImageIcon nextIcon;
 	private ImageIcon stopIcon;
-	private ImageIcon pandaImage;
-
+	private ImageIcon pandaIcon;
+	private ImageIcon openIcon;
 	/**
 	 * Create JButton fields for UI layout.
 	 */
@@ -77,11 +82,11 @@ public final class GUISynthesiszer extends JFrame implements MouseListener,
 	private JButton nextButton;
 	private JButton stopButton;
 	private JButton pandaButton;
-
+	private JButton openButton;
 	/**
 	 * Create JLabel fields for UI layout.
 	 */
-	private JLabel timeLabel;
+	//private JLabel timeLabel;
 	private static JLabel lyricsLabelPre;
 	private static JLabel lyricsLabelMid;
 	private static JLabel lyricsLabelNext;
@@ -89,7 +94,7 @@ public final class GUISynthesiszer extends JFrame implements MouseListener,
 	/**
 	 * Create Box field to lay out components in a vertical manner.
 	 */
-	private Box verticalBox;
+	//private Box verticalBox;
 
 	/**
 	 * Create Container field for overall layout.
@@ -108,6 +113,7 @@ public final class GUISynthesiszer extends JFrame implements MouseListener,
 	 * Create final Strings for representing different requests.
 	 */
 	private final static String next = "playNextSong";
+	private final static String open = "openFilesLocation";
 	private final static String previous = "playPreviousSong";
 	private final static String stop = "stopPlaying";
 	private final static String playOrNot = "playOrPause";
@@ -128,7 +134,7 @@ public final class GUISynthesiszer extends JFrame implements MouseListener,
 	/**
 	 * create String field for layout alignment.
 	 */
-	private String alignment;
+	//private String alignment;
 
 	/**
 	 * Create Boolean fields for player state indication and control.
@@ -138,8 +144,7 @@ public final class GUISynthesiszer extends JFrame implements MouseListener,
 	private boolean askForAChange = false;
 	private boolean filesNotBeenInitialized = true;
 	private static boolean wayPlaying = false;
-	private boolean fileIsNotReady = false;
-
+	
 	/**
 	 * Create double field for signaling a request ranging from 0 to 1.
 	 */
@@ -230,96 +235,91 @@ public final class GUISynthesiszer extends JFrame implements MouseListener,
 
 	private GUISynthesiszer() {
 		super();
-		songsHavePlayed = new ArrayList<Path>();
-		songToPlay = FileExplorer.songMenu(songsHavePlayed);
+		this.songsHavePlayed = new ArrayList<Path>();
+		this.songToPlay = FileExplorer.songMenu(songsHavePlayed);
 		if (songToPlay != null) {
-			songName = FileExplorer.getSongName(songToPlay);
-			if (!askForAChange) {
-				askForAChange = !askForAChange;
+			this.songName = FileExplorer.getSongName(songToPlay);
+			if (!this.askForAChange) {
+				this.askForAChange = !this.askForAChange;
 			}
-		} else {
-			if (!fileIsNotReady) {
-				fileIsNotReady = !fileIsNotReady;
-			}
-			logger.log(Level.WARNING, "Application is not ready!");
-		}
-		if (!songsHavePlayed.contains(songToPlay))
-			songsHavePlayed.add(songToPlay);
-		lastPlayed = songToPlay;
-		if (fileIsNotReady) {
-			return;
-		}
-		// Disable resizing.
-		this.setResizable(false);
+		} 
+		this.lastPlayed = this.songToPlay;
+		
 		playNextSong = false;
 		playPreviousSong = false;
 		stopPlaying = false;
-		// this.setPreferredSize(new Dimension(width, height));
-
+		this.setSize(new Dimension(629, 245));
+		// Disable resizing.
+		this.setResizable(false);
+		
 		// Initialize layout components.
-		monospace = new Font("Monospace", Font.TRUETYPE_FONT, 22);
+		monospace = new Font("Monospace", Font.TRUETYPE_FONT, 13);
 		sliderUi = new MetalSliderUI();
 		sliderUi.installUI(slider);
-		slider.setPreferredSize(new Dimension(700, 35));
 		slider.setUI(sliderUi);
+		
 		slider.setEnabled(false);
-		preIcon = new ImageIcon(getClass()
-				.getResource("previous_128Pixels.png"));
-		startIcon = new ImageIcon(getClass().getResource("play_128Pixels.png"));
-		nextIcon = new ImageIcon(getClass().getResource("next_128Pixels.png"));
-		pauseIcon = new ImageIcon(getClass().getResource("pause_128Pixels.png"));
-		stopIcon = new ImageIcon(getClass().getResource("stop_128Pixels.png"));
-		pandaImage = new ImageIcon(getClass()
-				.getResource("panda_128Pixels.png"));
+		
+		preIcon = new ImageIcon(getClass().getResource("/images/previous.png"));
+		startIcon = new ImageIcon(getClass().getResource("/images/play.png"));
+		nextIcon = new ImageIcon(getClass().getResource("/images/next.png"));
+		pauseIcon = new ImageIcon(getClass().getResource("/images/pause.png"));
+		stopIcon = new ImageIcon(getClass().getResource("/images/stop.png"));
+		pandaIcon = new ImageIcon(getClass().getResource("/images/panda.png"));
+		openIcon = new  ImageIcon(getClass().getResource("/images/open.png"));
+		
 		pandaButton = new JButton();
 		preButton = new JButton();
 		playButton = new JButton();
 		nextButton = new JButton();
 		stopButton = new JButton();
+		openButton = new JButton();
 
-		// set preferred dimensions for four buttons.
-		pandaButton.setPreferredSize(new Dimension(128, 128));
-		playButton.setPreferredSize(new Dimension(128, 128));
-		stopButton.setPreferredSize(new Dimension(128, 128));
-		preButton.setPreferredSize(new Dimension(128, 128));
-		nextButton.setPreferredSize(new Dimension(128, 128));
+		// set preferred dimensions for the buttons.
+		pandaButton.setPreferredSize(new Dimension(60, 60));
+		playButton.setPreferredSize(new Dimension(111, 38));
+		preButton.setPreferredSize(new Dimension(111, 38));
+		nextButton.setPreferredSize(new Dimension(111, 38));
+		stopButton.setPreferredSize(new Dimension(111, 38));
+		openButton.setPreferredSize(new Dimension(111, 38));
 		preButton.setIcon(preIcon);
 		playButton.setIcon(startIcon);
 		nextButton.setIcon(nextIcon);
 		stopButton.setIcon(stopIcon);
-		pandaButton.setIcon(pandaImage);
+		pandaButton.setIcon(pandaIcon); 
+		openButton.setIcon(openIcon);
 		// to hinder the extra area excluded in the icon from being
 		// highlighted when doing mouse click.
-		playButton.setContentAreaFilled(false);
-		stopButton.setContentAreaFilled(false);
+		int delta = 6;
 		preButton.setContentAreaFilled(false);
+		preButton.setBounds(15, 160, 111, 38);
+		playButton.setContentAreaFilled(false);
+		playButton.setBounds(126+delta, 160, 111, 38);
 		nextButton.setContentAreaFilled(false);
-		// pandaButton.setContentAreaFilled(true);
-		timeLabel = new JLabel();
-		alignment = "     ";
-		timeLabel.setText(alignment + timeLabelInit);
-		timeLabel.setPreferredSize(new Dimension(180, 128));
-		timeLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-		Box verticalLyricsBox = Box.createVerticalBox();
+		nextButton.setBounds(126+111+delta*2, 160, 111, 38);
+		stopButton.setContentAreaFilled(false); 
+		stopButton.setBounds(238+111+delta*3, 160, 111, 38);
+		openButton.setContentAreaFilled(false);
+		openButton.setBounds(238+111+111+delta*4, 160, 111, 38);
+	    pandaButton.setContentAreaFilled(true);
+		pandaButton.setBounds(10, 10, 60, 60);
+		
 		lyricsLabelPre = new JLabel();
+		lyricsLabelPre.setBounds(80,10,510, 20);
+		lyricsLabelPre.setBorder(BorderFactory.createDashedBorder(Color.red));
 		lyricsLabelMid = new JLabel();
+		lyricsLabelMid.setBounds(80,30,510, 20);
+		lyricsLabelMid.setBorder(BorderFactory.createDashedBorder(Color.red));
 		lyricsLabelNext = new JLabel();
+		lyricsLabelNext.setBounds(80,50,510, 20);
+		lyricsLabelNext.setBorder(BorderFactory.createDashedBorder(Color.red));
 		fontMetrics = lyricsLabelMid.getFontMetrics(monospace);
-		Box horizontalBox = Box.createHorizontalBox();
-		horizontalBox.setPreferredSize(new Dimension(690, 128));
-		// horizontalBox.add(Box.createHorizontalStrut(30));
-		horizontalBox.add(timeLabel);
-		horizontalBox.add(preButton);
-		// horizontalBox.add(Box.createHorizontalStrut(30));
-		horizontalBox.add(playButton);
-		// horizontalBox.add(Box.createHorizontalStrut(30));
-		horizontalBox.add(nextButton);
-		// horizontalBox.add(Box.createHorizontalStrut(30));
-		horizontalBox.add(stopButton);
-		// horizontalBox.add(Box.createHorizontalStrut(30));
-
+		signalUI.setBounds(10, 70, 583, 60);
+		slider.setBounds(10, 120, 583, 40);
+		
 		// Construct UI layout
 		contentPane = getContentPane();
+		contentPane.setLayout(null);
 		contentPane.setBackground(Color.LIGHT_GRAY);
 		playButton.setBorderPainted(false);
 		playButton.setBackground(Color.LIGHT_GRAY);
@@ -329,71 +329,64 @@ public final class GUISynthesiszer extends JFrame implements MouseListener,
 		preButton.setBackground(Color.LIGHT_GRAY);
 		nextButton.setBorderPainted(false);
 		nextButton.setBackground(Color.LIGHT_GRAY);
-		timeLabel.setBackground(new Color(0x003366));
-		pandaButton.setBorderPainted(false);
-		// pandaButton.setBackground(Color.LIGHT_GRAY);
+		openButton.setBorderPainted(false);
+		openButton.setBackground(Color.LIGHT_GRAY);
+	    pandaButton.setBackground(Color.LIGHT_GRAY);
 		slider.setBackground(Color.LIGHT_GRAY);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		verticalBox = Box.createVerticalBox();
-		pandaButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-		// verticalBox.add(pandaButton);
-		slider.setAlignmentX(Component.CENTER_ALIGNMENT);
-		timeLabel.setFont(new Font(Font.SANS_SERIF, Font.TRUETYPE_FONT, 22));
 		lyricsLabelPre.setFont(monospace);
-		lyricsLabelPre.setAlignmentX(Component.LEFT_ALIGNMENT);
-		lyricsLabelPre.setForeground(new Color(0xFFFFFF));
+		lyricsLabelPre.setAlignmentX(Component.RIGHT_ALIGNMENT);
 		lyricsLabelMid.setFont(monospace);
-		lyricsLabelMid.setAlignmentX(Component.LEFT_ALIGNMENT);
-		lyricsLabelMid.setForeground(new Color(0xFFFFFF));
+		lyricsLabelMid.setAlignmentX(Component.RIGHT_ALIGNMENT);
 		lyricsLabelNext.setFont(monospace);
-		lyricsLabelNext.setAlignmentX(Component.LEFT_ALIGNMENT);
-		lyricsLabelNext.setForeground(new Color(0xFFFFFF));
-		lyricsLabelPre.setText(quotes[(int) (quotes.length * Math.random())]);
-		lyricsLabelMid.setText(quotes[(int) (quotes.length * Math.random())]);
-		lyricsLabelNext.setText(quotes[(int) (quotes.length * Math.random())]);
-		verticalLyricsBox.add(lyricsLabelPre);
-		verticalLyricsBox.add(lyricsLabelMid);
-		verticalLyricsBox.add(lyricsLabelNext);
-		verticalLyricsBox.add(slider);
-		verticalLyricsBox.setPreferredSize(new Dimension(564, 128));
-		Box horizonLyricsBox = Box.createHorizontalBox();
-		Box verticalTimeAndSearchBox = Box.createVerticalBox();
-		verticalTimeAndSearchBox.add(pandaButton);
-		horizonLyricsBox.add(verticalTimeAndSearchBox);
-		horizonLyricsBox.add(verticalLyricsBox);
-		verticalBox.add(horizonLyricsBox);
-		verticalBox.add(horizontalBox);
-		verticalBox.setAlignmentX(Component.CENTER_ALIGNMENT);
-		contentPane.add(verticalBox);
+		lyricsLabelNext.setAlignmentX(Component.RIGHT_ALIGNMENT);
+		lyricsLabelMid.setForeground(new Color(0x6f5d92));
+		lyricsLabelPre.setForeground(new Color(0x6f5d92));
+		lyricsLabelNext.setForeground(new Color(0x6f5d92));
+		
+		setPrelableText(quotes[(int) (quotes.length * Math.random())]);
+		setMidlableText(quotes[(int) (quotes.length * Math.random() )]);
+		setNextlableText(quotes[(int) (quotes.length * Math.random())]);
+		contentPane.add(lyricsLabelPre);
+		contentPane.add(lyricsLabelMid);
+		contentPane.add(lyricsLabelNext);
+		contentPane.add(signalUI);
+		contentPane.add(slider);
+		contentPane.add(preButton);
+		contentPane.add(playButton);
+		contentPane.add(nextButton);
+		contentPane.add(stopButton);
+		contentPane.add(openButton);
+		contentPane.add(pandaButton);
 
 		// Add mouse listener and keyboard listener
-		timeLabel.addKeyListener(this);
 		pandaButton.addMouseListener(this);
 		preButton.addMouseListener(this);
 		playButton.addMouseListener(this);
 		nextButton.addMouseListener(this);
 		stopButton.addMouseListener(this);
+		openButton.addMouseListener(this);
 		slider.addMouseListener(this);
-		contentPane.addKeyListener(this);
-		pandaButton.addKeyListener(this);
+		//contentPane.addKeyListener(this);
+		//pandaButton.addKeyListener(this);
 		preButton.addKeyListener(this);
 		playButton.addKeyListener(this);
 		nextButton.addKeyListener(this);
 		stopButton.addKeyListener(this);
+		openButton.addKeyListener(this);
 		slider.addKeyListener(this);
 		pandaButton.setFocusable(true);
 		playButton.setFocusable(true);
 		preButton.setFocusable(true);
 		stopButton.setFocusable(true);
 		nextButton.setFocusable(true);
-
+		openButton.setFocusable(true);
 		// SetsetFocusTraversalKeysEnabled for hot key settings.
-		pandaButton.setFocusTraversalKeysEnabled(false);
 		preButton.setFocusTraversalKeysEnabled(false);
 		stopButton.setFocusTraversalKeysEnabled(false);
 		nextButton.setFocusTraversalKeysEnabled(false);
-
-		this.pack();
+		openButton.setFocusTraversalKeysEnabled(false);
+		playButton.setFocusTraversalKeysEnabled(false);
 
 		// Disable input methods
 		contentPane.enableInputMethods(false);
@@ -402,9 +395,9 @@ public final class GUISynthesiszer extends JFrame implements MouseListener,
 		stopButton.enableInputMethods(false);
 		preButton.enableInputMethods(false);
 		nextButton.enableInputMethods(false);
+		openButton.enableInputMethods(false);
 		slider.enableInputMethods(false);
-		timeLabel.enableInputMethods(false);
-
+		
 		// Set layout dimension and location on the screen
 		GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment()
 				.getDefaultScreenDevice();
@@ -412,6 +405,12 @@ public final class GUISynthesiszer extends JFrame implements MouseListener,
 		int screenHeight = gd.getDisplayMode().getHeight();
 		this.setLocation(screenWidth / 2 - 346, screenHeight / 2 - 256);
 		contentPane.requestFocusInWindow();
+		//Map<String, String> env = System.getenv();
+		//for (String envName: env.keySet())
+		//{
+		//	System.out.format("%s=%s%n", envName, env.get(envName));
+		//}
+		((Frame)this).setIconImages(null);
 		this.setVisible(true);
 	}
 
@@ -471,7 +470,7 @@ public final class GUISynthesiszer extends JFrame implements MouseListener,
 	}
 
 	public static void main(String[] args) throws IOException {
-		// logger.setLevel(Level.OFF);
+	 	logger.setLevel(Level.OFF);
 		Initializer();
 		Arrays.sort(new byte[]{1,34,5});
 	}
@@ -493,41 +492,31 @@ public final class GUISynthesiszer extends JFrame implements MouseListener,
 				return;
 			}
 			if (e.getSource().equals(this.nextButton)) {
-				if (Math.pow(e.getX() - nextButton.getHeight() / 2, 2)
-						+ Math.pow(e.getY() - nextButton.getHeight() / 2, 2) > Math
-							.pow(nextButton.getHeight() / 2, 2)) {
-					return;
-				} else {
+				{
 					Thread.sleep(50);
 					playNextSong = true;
 					requestHandler(next);
 				}
 			} else if (e.getSource().equals(this.preButton)) {
-				if (Math.pow(e.getX() - preButton.getHeight() / 2, 2)
-						+ Math.pow(e.getY() - preButton.getHeight() / 2, 2) > Math
-							.pow(preButton.getHeight() / 2, 2)) {
-					return;
-				} else {
+				{
 					Thread.sleep(50);
 					playPreviousSong = true;
 					requestHandler(previous);
 				}
 			} else if (e.getSource().equals(this.stopButton)) {
-				if (Math.pow(e.getX() - stopButton.getHeight() / 2, 2)
-						+ Math.pow(e.getY() - stopButton.getHeight() / 2, 2) > Math
-							.pow(stopButton.getHeight() / 2, 2)) {
-					return;
-				} else {
+				{
 					Thread.sleep(50);
 					stopPlaying = true;
 					requestHandler(stop);
 				}
+			} else if (e.getSource().equals(this.openButton)) {
+				{
+					Thread.sleep(50);
+					stopPlaying = true;
+					requestHandler(open);
+				}
 			} else if (e.getSource().equals(this.playButton)) {
-				if (Math.pow(e.getX() - playButton.getHeight() / 2, 2)
-						+ Math.pow(e.getY() - playButton.getHeight() / 2, 2) > Math
-							.pow(playButton.getHeight() / 2, 2)) {
-					return;
-				} else {
+				{
 					Thread.sleep(50);
 					if (FormatParser.getInstance() == null) {
 						askForAChange = true;
@@ -673,7 +662,6 @@ public final class GUISynthesiszer extends JFrame implements MouseListener,
 	@Override
 	public void mouseEntered(MouseEvent e) {
 		return;
-		// TODO Auto-generated method stub
 	}
 
 	@Override
@@ -683,9 +671,9 @@ public final class GUISynthesiszer extends JFrame implements MouseListener,
 
 	/**
 	 * Create a method to package and handle different requests for code
-	 * simplicity and reuse. There are four different requests, they are as
+	 * simplicity and reuse. There are five different requests, they are as
 	 * follows: 1. play next song; 2. play previous song; 3. play or pause; 4.
-	 * stop playing;
+	 * stop playing; 5. Open file directory.
 	 * 
 	 * @author JoySanctuary
 	 *
@@ -695,7 +683,15 @@ public final class GUISynthesiszer extends JFrame implements MouseListener,
 		// parameter.
 		try {
 			switch (option) {
+			case open:
+				FileExplorer.EXPLORER.OpenLocation();
+				songsHavePlayed = new ArrayList<Path>();
+				songToPlay = FileExplorer.songMenu(songsHavePlayed);
+				
+				if (songToPlay != null)  this.requestHandler(next);
+				break;
 			case next:
+				if (songToPlay == null) return;
 				logger.log(Level.INFO, "Switching to next song.");
 				preConditionHandler();
 				if (playNextSong) {
@@ -706,7 +702,7 @@ public final class GUISynthesiszer extends JFrame implements MouseListener,
 					songToPlay = FileExplorer.songMenu(songsHavePlayed);
 					if (songToPlay == null) {
 						songToPlay = songsHavePlayed.get(0);
-					}
+					} 
 				} else
 					songToPlay = songsHavePlayed.get(songsHavePlayed
 							.indexOf(lastPlayed) + 1);
@@ -714,6 +710,7 @@ public final class GUISynthesiszer extends JFrame implements MouseListener,
 				break;
 			// handling play previous song
 			case previous:
+				
 				logger.log(Level.INFO, "Start playing previous audio.");
 				preConditionHandler();
 				if (playPreviousSong) {
@@ -735,17 +732,18 @@ public final class GUISynthesiszer extends JFrame implements MouseListener,
 				postConditionHandler();
 				break;
 			case playOrNot:
+				if (songToPlay == null) return;
 				if (stopPlaying) {
 					stopPlaying = !stopPlaying;
 				}
-				howToPlay();
+				if (songToPlay != null)howToPlay();
 				break;
 			case stop:
 				logger.log(Level.INFO, "Stop current audio.");
 				askForAChange = true;
-				lyricsLabelPre.setText(quotes[0]);
-				lyricsLabelMid.setText(quotes[0]);
-				lyricsLabelNext.setText(quotes[0]);
+				setPrelableText(quotes[0]);
+				setMidlableText(quotes[0]);
+				setNextlableText(quotes[0]);
 				synthesiszer.setTitle(quotes[0]);
 				Thread.sleep(10);
 				// reset GUI outlook.
@@ -774,7 +772,6 @@ public final class GUISynthesiszer extends JFrame implements MouseListener,
 			if (stopPlaying) {
 				stopPlaying = !stopPlaying;
 			}
-			timeLabel.setText(alignment + timeLabelInit);
 			if (line != null) {
 				line.drain();
 				line.close();
@@ -840,7 +837,7 @@ public final class GUISynthesiszer extends JFrame implements MouseListener,
 		try {
 			if (FormatParser.getInstance() == null) {
 				askForAChange = true;
-				timeLabel.setText(alignment + timeLabelInit);
+				//timeLabel.setText(alignment + timeLabelInit);
 				logger.log(Level.INFO, "Creating an instance of decoder.");
 				FormatParser.createInstance(songToPlay);
 				logger.log(Level.INFO,
@@ -869,7 +866,7 @@ public final class GUISynthesiszer extends JFrame implements MouseListener,
 				if (playOrPause) {
 					if (askForAChange) {
 						logger.log(Level.INFO, "Start playing audio.");
-						timeLabel.setText(alignment + timeLabelInit);
+						//timeLabel.setText(alignment + timeLabelInit);
 						Thread.sleep(200);
 						stillParsingLyrics = true;
 						logger.log(Level.INFO,
@@ -1137,7 +1134,6 @@ public final class GUISynthesiszer extends JFrame implements MouseListener,
 
 	@Override
 	public void keyTyped(KeyEvent e) {
-		// TODO Auto-generated method stub
 
 	}
 
@@ -1232,7 +1228,6 @@ public final class GUISynthesiszer extends JFrame implements MouseListener,
 
 	@Override
 	public void keyReleased(KeyEvent e) {
-		// TODO Auto-generated method stub
 	}
 
 	/**
@@ -1291,8 +1286,7 @@ public final class GUISynthesiszer extends JFrame implements MouseListener,
 			Path lrcPath = FileExplorer.getLRCFilePath(songToPlay);
 			songName = FileExplorer.getSongName(songToPlay);
 			LastTimeFrame = timeLabelInit;
-			fMetrics = lyricsLabelPre.getFontMetrics(new Font("Monospace",
-					Font.TRUETYPE_FONT, 11));
+			fMetrics = lyricsLabelPre.getFontMetrics(monospace);
 			if (fMetrics.stringWidth(songName) > 230) {
 				synthesiszer.setTitle('\u264f' + " "
 						+ songName.substring(songName.indexOf('-') + 1) + " "
@@ -1302,9 +1296,6 @@ public final class GUISynthesiszer extends JFrame implements MouseListener,
 						+ '\u264f');
 			songName += "   ";
 			if (lrcPath != null) {
-				lyricsLabelPre.setForeground(new Color(0x003366));
-				lyricsLabelMid.setForeground(new Color(0x003366));
-				lyricsLabelNext.setForeground(new Color(0x003366));
 				lyricDict = FileExplorer.lrcParser(lrcPath);
 				// Resort time frames in ascending order.
 				frameKeys = new Float[lyricDict.size()];
@@ -1320,29 +1311,44 @@ public final class GUISynthesiszer extends JFrame implements MouseListener,
 						"Cannot find the lyrics for current song.");
 				stillParsingLyrics = false;
 				timer = 0;
-				lyricsLabelMid.setForeground(new Color(0x006600));
-				lyricsLabelPre.setForeground(new Color(0x006600));
-				lyricsLabelNext.setForeground(new Color(0x006600));
 				fMetrics = lyricsLabelPre.getFontMetrics(monospace);
-				lyricsLabelPre.setText(quotes[(int) (quotes.length * Math
-						.random())]);
-				lyricsLabelMid.setText(quotes[(int) (quotes.length * Math
-						.random())]);
-				lyricsLabelNext.setText(quotes[(int) (quotes.length * Math
-						.random())]);
+				setPrelableText(quotes[(int) (quotes.length * Math.random())]);
+				setMidlableText(quotes[(int) (quotes.length * Math.random())]);
+				setNextlableText(quotes[(int) (quotes.length * Math.random())]);
 			}
-			timeLabel.setText(alignment + timeLabelInit);
 			slider.setEnabled(true);
 			int unshownLenMid = 0;
+			int unshownLenPrev = 0;
+			int unshownLenNext = 0;
 			String midText = null;
+			String prevText = null;
+			String nextText = null;
 			int lenInPixelsMid = -1;
+			int lenInPixelsPrev = -1;
+			int lenInPixelsNext = -1;
 			int midIdx = 0;
+			int prevIdx = 0;
+			int nextIdx = 0;
 			midText = lyricsLabelMid.getText();
+			prevText = lyricsLabelPre.getText();
+			nextText = lyricsLabelNext.getText();
+			lenInPixelsPrev = fontMetrics.stringWidth(prevText);
 			lenInPixelsMid = fontMetrics.stringWidth(midText);
-			if (lenInPixelsMid > 475) {
+			lenInPixelsNext = fontMetrics.stringWidth(nextText);
+			if (lenInPixelsMid > 582) {
 				unshownLenMid = 1;
 				midText += " ";
 				midText += midText;
+			}
+			if (lenInPixelsPrev > 582) {
+				unshownLenPrev = 1;
+				prevText += " ";
+				prevText += prevText;
+			}
+			if (lenInPixelsNext > 582) {
+				unshownLenNext = 1;
+				nextText += " ";
+				nextText += nextText;
 			}
 			if (askForAChange) {
 				askForAChange = !askForAChange;
@@ -1364,12 +1370,28 @@ public final class GUISynthesiszer extends JFrame implements MouseListener,
 								timer += 20;
 								if (timer % 200 == 0) {
 									if (unshownLenMid > 0) {
-										lyricsLabelMid.setText('\u266A'
+										setMidlableText('\u266A'
 												+ " "
 												+ midText.substring(midIdx,
-														midIdx + 50) + " "
+														midIdx + 80) + " "
 												+ '\u266A');
 										midIdx += 1;
+									}
+									if (unshownLenPrev > 0) {
+										setPrelableText('\u266A'
+												+ " "
+												+ prevText.substring(prevIdx,
+														prevIdx + 80) + " "
+												+ '\u266A');
+										prevIdx += 1;
+									}
+									if (unshownLenNext > 0) {
+										setNextlableText('\u266A'
+												+ " "
+												+ nextText.substring(nextIdx,
+														nextIdx + 80) + " "
+												+ '\u266A');
+										nextIdx += 1;
 									}
 								}
 								if (midIdx > (midText.length() - 1) / 2) {
@@ -1377,6 +1399,18 @@ public final class GUISynthesiszer extends JFrame implements MouseListener,
 											.length() - 1) / 2 + 1);
 									midText += midText;
 									midIdx = 0;
+								}
+								if (prevIdx > (prevText.length() - 1) / 2) {
+									prevText = prevText.substring((prevText
+											.length() - 1) / 2 + 1);
+									prevText += prevText;
+									prevIdx = 0;
+								}
+								if (nextIdx > (nextText.length() - 1) / 2) {
+									nextText = nextText.substring((nextText
+											.length() - 1) / 2 + 1);
+									nextText += nextText;
+									nextIdx = 0;
 								}
 							}
 						} else {
@@ -1399,32 +1433,32 @@ public final class GUISynthesiszer extends JFrame implements MouseListener,
 							if (min < 10) {
 								if (!LastTimeFrame.equals("0" + min + ":0" + s)) {
 									LastTimeFrame = "0" + min + ":0" + s;
-									timeLabel.setText(alignment + " "
-											+ '\u264f' + " " + LastTimeFrame
-											+ " " + '\u264f' + " ");
+									//timeLabel.setText(alignment + " "
+										//	+ '\u264f' + " " + LastTimeFrame
+											//+ " " + '\u264f' + " ");
 								}
 							} else {
 								if (!LastTimeFrame.equals(min + ":0" + s)) {
 									LastTimeFrame = min + ":0" + s;
-									timeLabel.setText(alignment + " "
-											+ '\u264f' + " " + LastTimeFrame
-											+ " " + '\u264f' + " ");
+									//timeLabel.setText(alignment + " "
+										//	+ '\u264f' + " " + LastTimeFrame
+											//+ " " + '\u264f' + " ");
 								}
 							}
 						} else {
 							if (min < 10) {
 								if (!LastTimeFrame.equals("0" + min + ":" + s)) {
 									LastTimeFrame = "0" + min + ":" + s;
-									timeLabel.setText(alignment + " "
-											+ '\u264f' + " " + LastTimeFrame
-											+ " " + '\u264f' + " ");
+									//timeLabel.setText(alignment + " "
+										//	+ '\u264f' + " " + LastTimeFrame
+											//+ " " + '\u264f' + " ");
 								}
 							} else {
 								if (!LastTimeFrame.equals(min + ":" + s)) {
 									LastTimeFrame = min + ":" + s;
-									timeLabel.setText(alignment + " "
-											+ '\u264f' + " " + LastTimeFrame
-											+ " " + '\u264f' + " ");
+									//timeLabel.setText(alignment + " "
+										//	+ '\u264f' + " " + LastTimeFrame
+											//+ " " + '\u264f' + " ");
 								}
 							}
 						}
@@ -1435,13 +1469,12 @@ public final class GUISynthesiszer extends JFrame implements MouseListener,
 					e.printStackTrace();
 				}
 			}
-			lyricsLabelPre.setText(quotes[0]);
-			lyricsLabelMid.setText(quotes[0]);
-			lyricsLabelNext.setText(quotes[0]);
+			setPrelableText(quotes[0]);
+			setMidlableText(quotes[0]);
+			setNextlableText(quotes[0]);
 			synthesiszer.setTitle(quotes[0]);
 			playButton.setIcon(startIcon);
 			slider.setValue(slider.getMinimum());
-			timeLabel.setText(alignment + timeLabelInit);
 		}
 	}
 }

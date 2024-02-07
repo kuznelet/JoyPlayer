@@ -15,13 +15,15 @@
  */
 package com.filesystem.handlers;
 
+
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.io.BufferedReader;
-import java.io.File;
+
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -40,7 +42,7 @@ import com.audioplayer.GraphAndSound.FormatExtension;
 import com.audioplayer.GraphAndSound.GUISynthesiszer;
 
 public final class FileExplorer {
-	private static final FileExplorer EXPLORER = new FileExplorer();
+	public static final FileExplorer EXPLORER = new FileExplorer();
 	private static float pennySec;
 	private static float currentKey;
 	private static String preText;
@@ -65,53 +67,62 @@ public final class FileExplorer {
 		// Make sure that there is no more than one single Java process that do
 		// "plays the FLAC audio file".
 		EXPLORER.alreadyStartOneApp = false;
-		Process process = null;
-		try {
-			process = Runtime.getRuntime().exec("jps");
-			BufferedReader br = new BufferedReader(new InputStreamReader(
-					process.getInputStream()));
-			String p = null;
-			int count = 0;
-			String mainClassName = GUISynthesiszer.class.getSimpleName();
-			String fileSource = GUISynthesiszer.class.getResource(
-					mainClassName + ".class").toString();
-			if (fileSource.startsWith("jar:file:/")) {
-				fileSource = fileSource.substring(10);
-				fileSource = fileSource.substring(0,
-						fileSource.lastIndexOf("!"));
-			} else if (fileSource.startsWith("file:/")) {
-				fileSource = fileSource.substring(6);
-			}
-			Path sourceFile = Paths.get(fileSource);
-			String fileSourceName = sourceFile.toAbsolutePath().toString();
-			fileSourceName = fileSourceName.substring(fileSourceName
-					.lastIndexOf(File.separator) + 1);
-			Logger.getGlobal().log(Level.FINE,
-					"main class name: " + mainClassName);
-			Logger.getGlobal().log(Level.FINE, fileSourceName);
-			while ((p = br.readLine()) != null) {
-				if (p.endsWith(" " + mainClassName)
-						|| p.endsWith(" " + fileSourceName)) {
-					count++;
-				}
-			}
-			if (count > 1) {
-				EXPLORER.alreadyStartOneApp = !EXPLORER.alreadyStartOneApp;
-			}
-			br.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		//Process process = null;
+		//try {
+			// ProcessBuilder pb=new ProcessBuilder("jps");
+			// pb.redirectErrorStream(true);
+			// process = pb.start();
+			// BufferedReader br = new BufferedReader(new InputStreamReader(
+			// 		process.getInputStream()));
+			// String p = null;
+			// int count = 0;
+			// String mainClassName = GUISynthesiszer.class.getSimpleName();
+			// String fileSource = GUISynthesiszer.class.getResource(
+			// 		mainClassName + ".class").toString();
+			// if (fileSource.startsWith("jar:file:/")) {
+			// 	fileSource = fileSource.substring(10);
+			// 	fileSource = fileSource.substring(0,
+			// 			fileSource.lastIndexOf("!"));
+			// } else if (fileSource.startsWith("file:/")) {
+			// 	fileSource = fileSource.substring(6);
+			// }
+			// Path sourceFile = Paths.get(fileSource);
+			// String fileSourceName = sourceFile.toAbsolutePath().toString();
+			// fileSourceName = fileSourceName.substring(fileSourceName
+			// 		.lastIndexOf(File.separator) + 1);
+			// Logger.getGlobal().log(Level.FINE,
+			// 		"main class name: " + mainClassName);
+			// Logger.getGlobal().log(Level.FINE, fileSourceName);
+			// while ((p = br.readLine()) != null) {
+			// 	if (p.endsWith(" " + mainClassName)
+			// 			|| p.endsWith(" " + fileSourceName)) {
+			// 		count++;
+			// 	}
+			// }
+			// if (count > 1) {
+			// 	EXPLORER.alreadyStartOneApp = !EXPLORER.alreadyStartOneApp;
+			// }
+			// br.close();
+		//} catch (IOException e) {
+		//	e.printStackTrace();
+		//}
+		//this.OpenLocation();
+		// parsing files and directories under specified path
+		// refreshDirectory(lrcExt);
+	}
+
+	public void OpenLocation()
+	{
 		EXPLORER.songList = null;
 		EXPLORER.FLACsongList = new LinkedList<>();
 		EXPLORER.mp3songList = new LinkedList<>();
 		EXPLORER.folderList = new LinkedList<>();
 		EXPLORER.lyricsList = new LinkedList<>();
-		specifiedPath = null;
-		if (!alreadyStartOneApp) {
+		this.specifiedPath = null;
+		if (!this.alreadyStartOneApp) {
 			synchronized (this) {
 				fileChooser = new JFileChooser();
-				fileChooser.setDialogTitle("Please choose a FLAC directory");
+				fileChooser.setDialogTitle("Please choose a MP3 directory");
 				this.notify();
 				fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 			}
@@ -119,6 +130,7 @@ public final class FileExplorer {
 			if (response == JFileChooser.APPROVE_OPTION) {
 				// Initialize file paths and directory paths based on current
 				// specified path.
+				
 				specifiedPath = Paths.get(fileChooser.getSelectedFile()
 						.getAbsolutePath());
 				FileAndDirectory.recursiveDirectoryHandler(specifiedPath,
@@ -136,10 +148,7 @@ public final class FileExplorer {
 				Arrays.sort(songList);
 			}
 		}
-		// parsing files and directories under specified path
-		// refreshDirectory(lrcExt);
 	}
-
 	// LRC file parser
 	/**
 	 * Parse the LRC file from the given file path, return the time frames and
@@ -506,9 +515,17 @@ public final class FileExplorer {
 					songPath.toString().length() - 4)
 					+ FormatExtension.LRC.getExtension();
 		}
-		Path path = Paths.get(str);
-		if (Files.exists(path)) {
-			return path;
+		
+		try
+		{
+			Path path = Paths.get(str);
+			if (Files.exists(path, LinkOption.NOFOLLOW_LINKS)) {
+				return path;
+			}
+		}
+		catch(Exception ex)
+		{
+			System.err.println(ex.getMessage());
 		}
 		return null;
 	}
@@ -542,7 +559,7 @@ public final class FileExplorer {
 		for (Path path : EXPLORER.songList) {
 			if (path.toString().toUpperCase().contains(response.toUpperCase())) {
 				return path;
-			}
+			 }
 		}
 		return null;
 	}
@@ -558,8 +575,10 @@ public final class FileExplorer {
 		if (EXPLORER.specifiedPath == null) {
 			return null;
 		}
-		for (Path path : EXPLORER.songList) {
-			if (!songsHavePicked.contains(path)) {
+		for (Path path : EXPLORER.songList) 
+		{
+			if (!songsHavePicked.contains(path)) 
+			{
 				return path;
 			}
 		}

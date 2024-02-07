@@ -34,6 +34,9 @@
 
 package com.mp3.decoder;
 
+import com.audioplayer.GraphAndSound.GUISynthesiszer;
+import com.audioplayer.GraphAndSound.SignalPanel;
+
 /**
  * Class Implementing Layer 3 Decoder.
  *
@@ -311,6 +314,9 @@ final class LayerIIIDecoder implements FrameDecoder
 	                     }
 	                    	filter1.input_samples(samples1);
 							filter1.calculate_pcm_samples(buffer);
+							
+							float[] out = filter1.GetTmpOut();
+							((SignalPanel)GUISynthesiszer.Initializer().signalUI).setTmpOut(out, 1);
 						  }
 						} else {
 						  for (ss=0;ss<SSLIMIT;ss++) { // Polyphase synthesis
@@ -322,6 +328,8 @@ final class LayerIIIDecoder implements FrameDecoder
 	                     }
 	                    	filter2.input_samples(samples2);
 							filter2.calculate_pcm_samples(buffer);
+							float[] out = filter2.GetTmpOut();
+							((SignalPanel)GUISynthesiszer.Initializer().signalUI).setTmpOut(out, 2);
 						  }
 
 	               }

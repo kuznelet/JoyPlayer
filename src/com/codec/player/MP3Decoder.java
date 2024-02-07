@@ -26,6 +26,8 @@ package com.codec.player;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -152,7 +154,7 @@ public final class MP3Decoder extends Decoder {
 						isReady = true;
 					}
 				}
-			} catch (JavaLayerException | LineUnavailableException
+			} catch (URISyntaxException | JavaLayerException | LineUnavailableException
 					| IOException e) {
 				e.printStackTrace();
 			}
@@ -224,9 +226,10 @@ public final class MP3Decoder extends Decoder {
 	 * 
 	 * @throws IOException
 	 */
-	protected static void getURLInputStream(Path filePath) throws IOException {
-
-		URL url = new URL(filePath.toAbsolutePath().toString());
+	protected static void getURLInputStream(Path filePath) throws IOException,URISyntaxException {
+		String s = filePath.toAbsolutePath().toString();
+		URI uri = new URI(s);
+		URL url = uri.toURL();
 		InputStream fin = url.openStream();
 		byteBuffer = new BufferedInputStream(fin);
 	}
@@ -298,7 +301,6 @@ public final class MP3Decoder extends Decoder {
 
 	@Override
 	protected long getTotalSamplesInStream() {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 

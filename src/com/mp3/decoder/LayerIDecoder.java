@@ -26,6 +26,9 @@
  
 package com.mp3.decoder;
 
+import com.audioplayer.GraphAndSound.GUISynthesiszer;
+import com.audioplayer.GraphAndSound.SignalPanel;
+
 /**
  * Implements decoding of MPEG Audio Layer I frames. 
  */
@@ -136,8 +139,15 @@ class LayerIDecoder implements FrameDecoder
   		  		write_ready = subbands[i].put_next_sample(which_channels,filter1, filter2);
 
   		  	filter1.calculate_pcm_samples(buffer);
+			float[] out = filter1.GetTmpOut();
+			((SignalPanel)GUISynthesiszer.Initializer().signalUI).setTmpOut(out, 1);
+
   		  	if ((which_channels == OutputChannels.BOTH_CHANNELS) && (mode != Header.SINGLE_CHANNEL))
-           		filter2.calculate_pcm_samples(buffer);
+			{
+				filter2.calculate_pcm_samples(buffer);
+				out = filter2.GetTmpOut();
+				((SignalPanel)GUISynthesiszer.Initializer().signalUI).setTmpOut(out, 2);
+			}
   		  } while (!write_ready);
   		} while (!read_ready);
 		

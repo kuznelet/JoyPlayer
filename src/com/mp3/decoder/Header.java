@@ -318,7 +318,6 @@ public final class Header {
 				// System.out.println("VBR:"+vbri+" Frames:"+ h_vbr_frames
 				// +" Size:"+h_vbr_bytes);
 				// TOC
-				// TODO
 			}
 		} catch (ArrayIndexOutOfBoundsException e) {
 			throw new BitstreamException("VBRIVBRHeader Corrupted", e);
